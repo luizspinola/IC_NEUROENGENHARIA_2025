@@ -161,7 +161,7 @@ class MainGui(QtWidgets.QMainWindow):
                   [0,4,5], [0,7,5],
                   [2,4,5], [2,6,5],
                   [3,6,5], [3,7,5]])
-        colors = np.array([[1,1/(1+i*10),1/(1+i*10),1] for i in range(12)])
+        colors = np.array([[1/(1+i*10),1,1/(1+i*10),1] for i in range(12)])
         self.cube = gl.GLMeshItem(vertexes=vertexes, faces=faces, faceColors=colors,
                      drawEdges=True, edgeColor=(0, 0, 0, 1))
         self.openGLWidget.addItem(self.cube)
