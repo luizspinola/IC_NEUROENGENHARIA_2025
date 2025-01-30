@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt6.QtCore import QObject, pyqtSlot as Slot, pyqtSignal
 import copy
-from ahrs.filters import EKF
+from ahrs.filters import Madgwick
 from ahrs.common.orientation import acc2q
 from scipy.spatial.transform import Rotation as Rot
 import math
@@ -39,13 +39,13 @@ class FormatData(QObject):
         self.define_storage_data()
         self.sensor_show = 2
 
-        self.define_var_kalman()
+        #self.define_var_kalman()
 
         self.roll = 0
         self.pitch = 0
 
         #Definição de variáveis para o filtro de Kalman extendido
-        self.ekf = EKF(frequency = 500.0, magnetic_ref = 32)
+        self.Madgwick = Madgwick(frequency = 500.0)
         self.Q = []
         self.counter = 0
 
@@ -64,13 +64,13 @@ class FormatData(QObject):
             self.data_save_sensors[i] = np.full((self.qt_info_max, self.qt_data_queue), 40000)
             self.grp_sensors[i] = 0
 
-    def define_var_kalman(self):
+    '''def define_var_kalman(self):
          self.X = np.array([1.0, 0.0, 0.0, 0.0])
          self.P = np.eye(4)
          self.R = np.eye(4) * 10.0
          self.Q = np.eye(4) * 1e-4
          self.C = np.eye(4)
-
+    '''
     @Slot(int)
     def get_axis_id(self, axis_id):
         self.axis_id = axis_id
@@ -132,7 +132,7 @@ class FormatData(QObject):
         data_converted [0:3] = self.convert_data(data_needed[2:5], 'A')
         data_converted [3:6] = self.convert_data(data_needed[5:8], 'G')
         data_converted [6:9] = self.convert_data(data_needed[8:11], 'M')
-        quat_result = self.kalman_filter(data_converted)
+        quat_result = self.madgwick_filter(data_converted)
         self.quaternium.emit(quat_result)
         euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
         #self.data_sensors[sensor][:, position] = copy.deepcopy(data_converted)
@@ -177,14 +177,14 @@ class FormatData(QObject):
                 value = calib_A @ (value - calib_b)
         return value
 
-    def kalman_filter(self, data):
+    def madgwick_filter(self, data):
         Acc = copy.deepcopy(data[0:3])
         Gyr = copy.deepcopy(data[3:6])
         Mag = copy.deepcopy(data[6:9])
        
         if (self.counter == 0):
             self.Q = acc2q(Acc)
-        self.Q = self.ekf.update(q = self.Q, gyr = (Gyr * (math.pi/180)), acc = Acc, mag = Mag) 
+        self.Q = self.Madgwick.updateMARG(q = self.Q, gyr = (Gyr * (math.pi/180)), acc = Acc, mag = Mag) 
         return copy.deepcopy(self.Q)
 
 

@@ -252,13 +252,7 @@ class MainGui(QtWidgets.QMainWindow):
 
     
     def update_cube_angle(self, quat):
-        #q = QtGui.QQuaternion(quat[0], quat[1], quat[2], quat[3])
-        #q = QtGui.QQuaternion(1,0,1,0).normalized()
-        #axis, angle = q.getAxisAndAngle()
-        #self.cube.rotate(2*np.arccos(quat[0]), quat[1], quat[2], quat[3])
         self.cube.resetTransform()
-        #self.cube.rotate(90, 1, 0, 0)
-        #self.cube.rotate(360, 0, 0, 1)
         angle = math.acos(quat[0]) * 2 * ( 180.0/math.pi)
         angle_rad = math.acos(quat[0]) * 2
         self.cube.rotate(angle, quat[1]/math.sin(angle_rad/2), quat[2]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2))
