@@ -198,6 +198,7 @@ class MainGui(QtWidgets.QMainWindow):
         self.save_data.moveToThread(self.thread_save_data)
         self.frtdata.trans_save.connect(self.save_data.update)
         self.frtdata.quaternium.connect(self.update_cube_angle)
+        self.frtdata.displacement.connect(self.update_cube_position)
         self.pushButtonStop.clicked.connect(self.save_data.close_file) 
         self.thread_save_data.start()
         self.flag_start = True
@@ -257,6 +258,11 @@ class MainGui(QtWidgets.QMainWindow):
         angle_rad = math.acos(quat[0]) * 2
         self.cube.rotate(angle, quat[1]/math.sin(angle_rad/2), quat[2]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2))
 
+    def update_cube_position(self, pos):
+        #self.cube.resetTransform()
+        print("Posição recebida:", pos)
+        self.cube.translate(pos[0], pos[1], pos[2])
+    
     def update_plot(self):
         try:
             for i in range(len(self.curves)):

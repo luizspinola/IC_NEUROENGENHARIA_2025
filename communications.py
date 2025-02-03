@@ -79,7 +79,7 @@ class CentralCtrl(QObject):
     def send_config(self,params):
         (sensor_id,state,rate,axis) = params
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2) #Teria que modificar 2 para id pra mudar o canal pra cada sensor? 
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF, socket.inet_aton(get_default_ip()))
         data = commands.encode(commands.CMD_ANNOUCE,sensor_id=sensor_id,state=state,rate=rate,axis=axis,cnt=0)
         if data:

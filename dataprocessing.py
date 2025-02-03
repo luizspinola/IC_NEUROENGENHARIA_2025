@@ -22,11 +22,13 @@ class FormatData(QObject):
     trans = pyqtSignal(np.ndarray)
     trans_save = pyqtSignal(int, np.ndarray)
     quaternium = pyqtSignal(np.ndarray)
+    displacement = pyqtSignal(np.ndarray)
     # Valor válido para todas as instâncias dessa classe
     AFS_SEL = 0
     FS_SEL = 0
     FREQ = 500
     GRAV = 9.80665
+    DT = 1/FREQ
 
     def __init__(self):
         super().__init__()
@@ -43,6 +45,8 @@ class FormatData(QObject):
 
         self.roll = 0
         self.pitch = 0
+        self.velocity = np.array([0.0, 0.0, 0.0])
+        self.position = np.array([0.0, 0.0, 0.0])
 
         #Definição de variáveis para o filtro de Kalman extendido
         self.Madgwick = Madgwick(frequency = 500.0)
@@ -133,12 +137,17 @@ class FormatData(QObject):
         data_converted [3:6] = self.convert_data(data_needed[5:8], 'G')
         data_converted [6:9] = self.convert_data(data_needed[8:11], 'M')
         quat_result = self.madgwick_filter(data_converted)
+        rot_matrix = Rot.from_quat(quat_result).as_matrix() #Matriz de rotação do quaternion
+        acc_global = rot_matrix @ (data_converted[0:3] - np.array([0.0, 0.0, float(FormatData.GRAV)])) #Referencial Global
+        self.velocity += acc_global * FormatData.DT
+        self.position += self.velocity * FormatData.DT
+        self.displacement.emit(self.position)
         self.quaternium.emit(quat_result)
-        euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
+        #euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
         #self.data_sensors[sensor][:, position] = copy.deepcopy(data_converted)
-        self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
-        np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
-        self.data_save_sensors[sensor][:, position] = data_needed
+        #self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
+        #np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
+        #self.data_save_sensors[sensor][:, position] = data_needed
         '''
         self.data_sensors[sensor][:, position] = data_attribution
         data_needed_converted = np.full((self.qt_var_sensor), 0.0)
