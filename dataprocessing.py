@@ -137,11 +137,11 @@ class FormatData(QObject):
         data_converted [3:6] = self.convert_data(data_needed[5:8], 'G')
         data_converted [6:9] = self.convert_data(data_needed[8:11], 'M')
         quat_result = self.madgwick_filter(data_converted)
-        rot_matrix = Rot.from_quat(quat_result).as_matrix() #Matriz de rotação do quaternion
-        acc_global = rot_matrix @ (data_converted[0:3] - np.array([0.0, 0.0, float(FormatData.GRAV)])) #Referencial Global
-        self.velocity += acc_global * FormatData.DT
-        self.position += self.velocity * FormatData.DT
-        self.displacement.emit(self.position)
+        #rot_matrix = Rot.from_quat(quat_result).as_matrix() #Matriz de rotação do quaternion
+        #acc_global = rot_matrix @ (data_converted[0:3] - np.array([0.0, 0.0, float(FormatData.GRAV)])) #Referencial Global
+        #self.velocity += acc_global * FormatData.DT
+        #self.position += self.velocity * FormatData.DT
+        #self.displacement.emit(self.position)
         self.quaternium.emit(quat_result)
         #euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
         #self.data_sensors[sensor][:, position] = copy.deepcopy(data_converted)

@@ -192,7 +192,7 @@ class CentralCtrlSensorClient(QObject):
                 self.dispatch_data(data) # Recebe dados também para manter o sensor 'vivo'
 
         print(f'Closing data client for {self.ip}:{self.port}')
-        self.connected.emit((self.sensor_id, False))
+        self.connected.emit((self.sensor_id, False)) #é daí que a interface fecha ao ligar mais de um sensor?
         try:
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()

@@ -258,10 +258,10 @@ class MainGui(QtWidgets.QMainWindow):
         angle_rad = math.acos(quat[0]) * 2
         self.cube.rotate(angle, quat[1]/math.sin(angle_rad/2), quat[2]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2))
 
-    def update_cube_position(self, pos):
+    #def update_cube_position(self, pos):
         #self.cube.resetTransform()
-        print("Posição recebida:", pos)
-        self.cube.translate(pos[0], pos[1], pos[2])
+    #    print("Posição recebida:", pos)
+    #    self.cube.translate(pos[0], pos[1], pos[2])
     
     def update_plot(self):
         try:
