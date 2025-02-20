@@ -198,7 +198,7 @@ class MainGui(QtWidgets.QMainWindow):
         self.save_data.moveToThread(self.thread_save_data)
         self.frtdata.trans_save.connect(self.save_data.update)
         self.frtdata.quaternium.connect(self.update_cube_angle)
-        self.frtdata.displacement.connect(self.update_cube_position)
+        #self.frtdata.displacement.connect(self.update_cube_angle)
         self.pushButtonStop.clicked.connect(self.save_data.close_file) 
         self.thread_save_data.start()
         self.flag_start = True

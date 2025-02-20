@@ -143,11 +143,11 @@ class FormatData(QObject):
         #self.position += self.velocity * FormatData.DT
         #self.displacement.emit(self.position)
         self.quaternium.emit(quat_result)
-        #euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
+        euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
         #self.data_sensors[sensor][:, position] = copy.deepcopy(data_converted)
-        #self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
-        #np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
-        #self.data_save_sensors[sensor][:, position] = data_needed
+        self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
+        np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
+        self.data_save_sensors[sensor][:, position] = data_needed
         '''
         self.data_sensors[sensor][:, position] = data_attribution
         data_needed_converted = np.full((self.qt_var_sensor), 0.0)
