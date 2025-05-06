@@ -145,8 +145,9 @@ class FormatData(QObject):
         self.quaternium.emit(quat_result)
         euler_angles = (Rot.from_quat(quat_result, scalar_first=True)).as_euler('ZYX', degrees=True)
         #self.data_sensors[sensor][:, position] = copy.deepcopy(data_converted)
-        self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
-        np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
+        #self.data_sensors[sensor][:, position] = np.concatenate((euler_angles, \
+        #np.array([0.0,0.0,0.0,0.0,0.0,0.0])), axis=None)
+        self.data_sensors[sensor][:, position] = data_converted
         self.data_save_sensors[sensor][:, position] = data_needed
         '''
         self.data_sensors[sensor][:, position] = data_attribution
@@ -190,6 +191,7 @@ class FormatData(QObject):
         Acc = copy.deepcopy(data[0:3])
         Gyr = copy.deepcopy(data[3:6])
         Mag = copy.deepcopy(data[6:9])
+        #Mag = np.array([0.0, 0.0, 0.0])
        
         if (self.counter == 0):
             self.Q = acc2q(Acc)

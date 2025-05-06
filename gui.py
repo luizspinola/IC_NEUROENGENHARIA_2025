@@ -101,7 +101,11 @@ class MainGui(QtWidgets.QMainWindow):
         self.comboBoxIdg.currentTextChanged['QString'].connect(self.frtdata.change_ss)
         self.pushButtonStart.clicked.connect(self.start_stream)   
         self.pushButtonStart.clicked.connect(self.frtdata.define_storage_data)  
-        self.pushButtonStop.clicked.connect(self.stop_stream)  
+        self.pushButtonStop.clicked.connect(self.stop_stream) 
+        
+        self.angle_XZ = 0
+        self.angle_YZ = 0
+        self.angle_XY = 0 
     
     def set_graphs_params(self):
         self.y_limits = [self.frtdata.accel_blimit,self.frtdata.accel_blimit, self.frtdata.accel_blimit, 
@@ -117,6 +121,7 @@ class MainGui(QtWidgets.QMainWindow):
     
     def define_graphs(self):
         qt_graphs = (self.axis_id + 1) * 3
+        self.qt_graphs_data = qt_graphs
 
         try:
             self.graphicsView.clear()
@@ -133,7 +138,7 @@ class MainGui(QtWidgets.QMainWindow):
                                                        title = self.title_graphs[i],
                                                        pen = pg.mkPen(color='#00ff00', width=2))
             self.curves[i] = self.graphs[i].plot()
-            self.graphs[i].setRange(yRange = self.y_limits[i], disableAutoRange=True)
+            self.graphs[i].setRange(yRange = (-50,50), disableAutoRange=False)
 
         self.pdata = np.zeros((qt_graphs,1))
         length  = int(self.window_length*self.rate/1000)
@@ -163,23 +168,30 @@ class MainGui(QtWidgets.QMainWindow):
                   [3,6,5], [3,7,5]])
         colors = np.array([[1/(1+i*10),1,1/(1+i*10),1] for i in range(12)])
         self.cube = gl.GLMeshItem(vertexes=vertexes, faces=faces, faceColors=colors,
-                     drawEdges=True, edgeColor=(0, 0, 0, 1))
+                     drawEdges=True, edgeColor=(0, 1, 0, 1))
         self.openGLWidget.addItem(self.cube)
+        '''self.cube = gl.GLBoxItem()
+        self.cube.setSize(14,7,21)
+        #self.cube.setColor(0,1,0,1)
+        self.openGLWidget.addItem(self.cube)'''
     #==========================================================================================
     # CRIAÇÃO E CONEXÃO DAS THREADS SENSOR CLIENTS
     #==========================================================================================
     @Slot(tuple)
     def create_sensor_client(self, params):
-        id = params[0]
-        self.thread_sensor_client[id] = QThread()
-        self.sensor_client[id] = CentralCtrlSensorClient(params)
-        self.sensor_client[id].connected.connect(self.central_ctrl.client_connect)
-        self.sensor_client[id].decoded_data.connect(self.frtdata.join_data)
-        self.close_all.connect(self.sensor_client[id].close_loop)
-        self.sensor_client[id].moveToThread(self.thread_sensor_client[id])
-        self.thread_sensor_client[id].started.connect(self.sensor_client[id].run)
-        self.thread_sensor_client[id].start()
-        print("Objeto cliente", id, "associado:", self.sensor_client[id].thread())
+        try:
+            id = params[0]
+            self.thread_sensor_client[id] = QThread()
+            self.sensor_client[id] = CentralCtrlSensorClient(params)
+            self.sensor_client[id].connected.connect(self.central_ctrl.client_connect)
+            self.sensor_client[id].decoded_data.connect(self.frtdata.join_data)
+            self.close_all.connect(self.sensor_client[id].close_loop)
+            self.sensor_client[id].moveToThread(self.thread_sensor_client[id])
+            self.thread_sensor_client[id].started.connect(self.sensor_client[id].run)
+            self.thread_sensor_client[id].start()
+            print("Objeto cliente", id, "associado:", self.sensor_client[id].thread())
+        except:
+            print("Erro ao criar o objeto cliente", id)
 
     @Slot(dict)
     def gui_update_sensors(self, list_sensors):
@@ -198,13 +210,14 @@ class MainGui(QtWidgets.QMainWindow):
         self.save_data.moveToThread(self.thread_save_data)
         self.frtdata.trans_save.connect(self.save_data.update)
         self.frtdata.quaternium.connect(self.update_cube_angle)
-        #self.frtdata.displacement.connect(self.update_cube_angle)
+        self.frtdata.displacement.connect(self.update_cube_angle)
         self.pushButtonStop.clicked.connect(self.save_data.close_file) 
         self.thread_save_data.start()
         self.flag_start = True
 
     def putpdata(self, value):
         self.pdata = value
+        #print(value.shape)
         for i in range(len(self.curves)):
             shift = len(self.pdata[i])
             self.plotdata[i] = np.roll(self.plotdata[i], -shift)
@@ -257,18 +270,24 @@ class MainGui(QtWidgets.QMainWindow):
         angle = math.acos(quat[0]) * 2 * ( 180.0/math.pi)
         angle_rad = math.acos(quat[0]) * 2
         self.cube.rotate(angle, quat[1]/math.sin(angle_rad/2), quat[2]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2))
-
-    #def update_cube_position(self, pos):
-        #self.cube.resetTransform()
-    #    print("Posição recebida:", pos)
-    #    self.cube.translate(pos[0], pos[1], pos[2])
-    
+        
+        #self.angle_XZ = (math.atan2(quat[1]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2)))*(180/math.pi)
+        #self.angle_YZ = (math.atan2(quat[2]/math.sin(angle_rad/2), quat[3]/math.sin(angle_rad/2)))*(180/math.pi)
+        #self.angle_XY = (math.atan2(quat[1]/math.sin(angle_rad/2), quat[2]/math.sin(angle_rad/2)))*(180/math.pi)
+        
+        #print(f"Ângulos Euler - (XZ): {self.angle_XZ:.2f}°, (YZ): {self.angle_YZ:.2f}°, (XY): {self.angle_XY:.2f}°")
+    """def update_cube_position(self, pos):
+        self.cube.resetTransform()
+        print("Posição recebida:", pos)
+        self.cube.translate(pos[0], pos[1], pos[2])
+    """
     def update_plot(self):
         try:
             for i in range(len(self.curves)):
                 self.curves[i].setData(self.plotdata[i])
         except:
             pass
+        #print(self.qt_graphs_data)
     
     def closeEvent(self, event):
         self.close_all.emit(True)
